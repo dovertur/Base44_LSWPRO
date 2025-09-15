@@ -95,17 +95,21 @@ export default function Layout({ children, currentPageName }) {
       } catch (e) {
         // Not logged in or error fetching user
         console.log(e);
+        // Redirect to signup page if user is not authenticated
+        navigate('/signup');
+        // Redirect to signup page if user is not authenticated
+        navigate('/signup');
       }
     };
     fetchUser();
-  }, [currentPageName]);
+  }, [currentPageName, navigate]);
 
   // Reset search query when page changes
   useEffect(() => {
     if (currentPageName !== 'Dashboard') {
       setSearchQuery("");
     }
-  }, [currentPageName]);
+  }, [currentPageName, navigate]);
 
   // Close sidebar when user clicks outside or presses Escape
   useEffect(() => {
