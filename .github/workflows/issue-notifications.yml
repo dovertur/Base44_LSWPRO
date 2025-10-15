@@ -1,0 +1,20 @@
+name: Issue Notifications (Base44)
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"  # Every 4 hours, at minute 0 (UTC)
+  workflow_dispatch:
+
+jobs:
+  call-issue-notifications:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger issueNotifications
+        run: |
+          set -e
+          curl -sS -X POST "https://base44.app/api/apps/68c07b3fd994be317e5743df/functions/issueNotifications" \
+            -H "Content-Type: application/json" \
+            ${BASE44_API_KEY:+-H "Authorization: Bearer $BASE44_API_KEY"} \
+            -d '{}'
+        env:
+          BASE44_API_KEY: ${{ secrets.BASE44_API_KEY }}
