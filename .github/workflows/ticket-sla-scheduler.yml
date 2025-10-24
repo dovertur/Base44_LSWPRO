@@ -1,0 +1,32 @@
+name: Ticket SLA Scheduler (Base44)
+
+on:
+  schedule:
+    # Runs hourly at minute 7 (staggered to avoid hitting the exact hour with other jobs)
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+jobs:
+  call-ticket-sla-scheduler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Trigger ticketSLAScheduler (diagnostic + timeout)
+        env:
+          URL: https://lswpro2025.base44.app/api/apps/68c07b3fd994be317e5743df/functions/ticketSLAScheduler
+          BASE44_API_KEY: ${{ secrets.BASE44_API_KEY }}   # Optional if your endpoint needs auth
+          TRACE: sla-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          echo "UTC time: $(date -u)"
+          echo "Endpoint: $URL"
+          # Non-fatal network sanity
+          getent hosts lswpro2025.base44.app || true
+          # POST with retries + hard timeouts; prints HTTP code on last line
+          curl -v --fail --retry 3 --retry-all-errors \
+               --connect-timeout 10 --max-time 40 \
+               -X POST "$URL" \
+               -H "Content-Type: application/json" \
+               ${BASE44_API_KEY:+-H "Authorization: Bearer $BASE44_API_KEY"} \
+               -d "{\"_trace\":\"$TRACE\"}" \
+               -w "\nHTTP %{http_code}\n"
